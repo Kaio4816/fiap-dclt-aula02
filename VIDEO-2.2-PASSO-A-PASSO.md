@@ -219,47 +219,204 @@ Todos executam em paralelo!
 
 ---
 
-## 🌐 Parte 3: Matrix 2D - Conceito (Node.js + OS)
+## 🌐 Parte 3: Matrix 2D (Node.js + OS)
 
-### Passo 6: Entendendo Matrix 2D
+### Passo 6: Adicionar OS na Matrix
 
-**Podemos combinar múltiplas dimensões na matriz:**
+Agora vamos expandir a matriz para testar em **múltiplos sistemas operacionais**.
+
+**Editar o arquivo `.github/workflows/ci-matrix.yml`:**
+
+1. Adicionar `os` na matrix
+2. Usar `${{ matrix.os }}` no `runs-on`
+3. Atualizar o `name` do job
+
+**Alterações necessárias:**
 
 ```yaml
-strategy:
-  matrix:
-    # Combinações: 2 versões × 3 OS = 6 jobs!
-    node-version: [18, 20]
-    os: [ubuntu-latest, windows-latest, macos-latest]
+jobs:
+  test-matrix:
+    # ANTES: name: 🧪 Test on Node ${{ matrix.node-version }}
+    # DEPOIS:
+    name: 🧪 Node ${{ matrix.node-version }} on ${{ matrix.os }}
+    
+    # ANTES: runs-on: ubuntu-latest
+    # DEPOIS:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+        # ADICIONAR:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+```
+
+**Arquivo completo após alteração:**
+
+**Linux/Mac:**
+```bash
+cat > .github/workflows/ci-matrix.yml << 'EOF'
+# ============================================
+# WORKFLOW: CI com Matrix Strategy
+# Executa testes em múltiplas versões do Node.js
+# ============================================
+name: 🔄 CI with Matrix
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-matrix:
+    name: 🧪 Node ${{ matrix.node-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    # ============================================
+    # STRATEGY: Define a matriz de execução
+    # Cada combinação gera um job separado
+    # ============================================
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+      
+      - name: 📦 Install dependencies
+        working-directory: app
+        run: npm ci
+      
+      - name: 🧪 Run tests
+        working-directory: app
+        run: npm test
+EOF
+```
+
+**Windows (PowerShell):**
+```powershell
+@'
+# ============================================
+# WORKFLOW: CI com Matrix Strategy
+# Executa testes em múltiplas versões do Node.js
+# ============================================
+name: 🔄 CI with Matrix
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-matrix:
+    name: 🧪 Node ${{ matrix.node-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    # ============================================
+    # STRATEGY: Define a matriz de execução
+    # Cada combinação gera um job separado
+    # ============================================
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+      
+      - name: 📦 Install dependencies
+        working-directory: app
+        run: npm ci
+      
+      - name: 🧪 Run tests
+        working-directory: app
+        run: npm test
+'@ | Out-File -FilePath .github/workflows/ci-matrix.yml -Encoding UTF8
+```
+
+### Passo 7: Commit e Push da Atualização
+
+**Linux/Mac:**
+```bash
+git add .github/workflows/ci-matrix.yml
+git commit -m "feat(video-2.2): adicionar matrix 2D com múltiplos OS"
+git push origin main
+```
+
+**Windows (PowerShell):**
+```powershell
+git add .github/workflows/ci-matrix.yml
+git commit -m "feat(video-2.2): adicionar matrix 2D com múltiplos OS"
+git push origin main
+```
+
+### Passo 8: Ver Execução no GitHub
+
+**No GitHub Actions:**
+1. Ir para **Actions**
+2. Clicar no workflow **CI with Matrix**
+3. Ver os **9 jobs** executando em paralelo (3 versões × 3 OS)
+
+**Resultado esperado:**
+```
+✅ Node 18 on ubuntu-latest
+✅ Node 18 on windows-latest
+✅ Node 18 on macos-latest
+✅ Node 20 on ubuntu-latest
+✅ Node 20 on windows-latest
+✅ Node 20 on macos-latest
+✅ Node 22 on ubuntu-latest
+✅ Node 22 on windows-latest
+✅ Node 22 on macos-latest
 ```
 
 **Visualização:**
 
 ```mermaid
 graph TB
-    A[Matrix 2x3] --> B[Ubuntu]
+    A[Matrix 3x3] --> B[Ubuntu]
     A --> C[Windows]
     A --> D[macOS]
     
     B --> B1[Node 18]
     B --> B2[Node 20]
+    B --> B3[Node 22]
     
     C --> C1[Node 18]
     C --> C2[Node 20]
+    C --> C3[Node 22]
     
     D --> D1[Node 18]
     D --> D2[Node 20]
+    D --> D3[Node 22]
 ```
 
-**Resultado**: 6 jobs executando em paralelo!
+**Resultado**: 9 jobs executando em paralelo!
 
-> **💡 Nota**: Este é um conceito avançado. Na prática, testar em múltiplos OS consome mais recursos do GitHub Actions.
+> **💡 Nota**: Testar em múltiplos OS consome mais minutos do GitHub Actions. Use com moderação em projetos reais.
 
 ---
 
 ## ⚙️ Parte 4: Configurações Avançadas da Matrix
 
-### Passo 7: Include e Exclude
+### Passo 9: Include e Exclude (Conceito)
 
 **Customizar combinações específicas:**
 
@@ -281,7 +438,7 @@ strategy:
         os: windows-latest
 ```
 
-### Passo 8: Fail-Fast e Max-Parallel
+### Passo 10: Fail-Fast e Max-Parallel (Conceito)
 
 ```yaml
 strategy:
