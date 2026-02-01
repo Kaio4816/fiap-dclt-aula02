@@ -5,14 +5,14 @@
 name: 🔄 CI with Matrix
 
 on:
-   push:
-     branches: [ main ]
-   workflow_dispatch:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   test-matrix:
     name: 🧪 Node ${{ matrix.node-version }} on ${{ matrix.os }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     
     # ============================================
     # STRATEGY: Define a matriz de execução
@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18, 20, 22]
-        
+        os: [ubuntu-latest, windows-latest, macos-latest]
     
     steps:
       - name: 📥 Checkout
